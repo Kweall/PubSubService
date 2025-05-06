@@ -26,9 +26,15 @@ func (h *PubSubHandler) Subscribe(req *gen.SubscribeRequest, stream gen.PubSub_S
 		return status.Error(codes.InvalidArgument, "key is required")
 	}
 
+	log.Printf("[SUBSCRIBE] New subscription. Key: %s", req.Key)
+
+	defer func() {
+		log.Printf("[SUBSCRIBE] Subscription closed. Key: %s", req.Key)
+	}()
+
 	ctx := stream.Context()
 	return h.svc.Subscribe(ctx, req.GetKey(), func(data string) {
-		_ = stream.Send(&gen.Event{Data: data}) // потоковое отправление
+		_ = stream.Send(&gen.Event{Data: data})
 	})
 }
 
@@ -36,6 +42,8 @@ func (h *PubSubHandler) Publish(ctx context.Context, req *gen.PublishRequest) (*
 	if req.GetKey() == "" || req.GetData() == "" {
 		return nil, status.Error(codes.InvalidArgument, "key and data required")
 	}
+
+	log.Printf("[PUBLISH] Received request. Key: %s, Data: %s", req.Key, req.Data)
 
 	err := h.svc.Publish(ctx, req.GetKey(), req.GetData())
 	if err != nil {

@@ -17,6 +17,7 @@ import (
 	gen "pubsub_service/internal/delivery/grpc/gen"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	gen.RegisterPubSubServer(grpcServer, handler)
 
+	reflection.Register(grpcServer)
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
